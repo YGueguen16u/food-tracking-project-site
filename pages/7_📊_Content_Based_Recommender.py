@@ -10,13 +10,12 @@ import json
 import os
 import sys
 from datetime import datetime
+import tempfile
 
 # Ajouter le chemin racine au PYTHONPATH
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from AI.recommender.content_based.food_recommender import ContentBasedRecommender
-from AI.recommender.content_based.data_loader import ContentBasedDataLoader
-from aws_s3.connect_s3 import S3Manager
+from AWS.s3.connect_s3 import S3Manager
 
 # Configuration de la page
 st.set_page_config(
@@ -51,9 +50,53 @@ def load_example_recommendations():
         st.error(f"Erreur lors du chargement des recommandations : {str(e)}")
         return None
 
+# Fonction pour nettoyer les colonnes numériques
+def clean_numeric_column(df, column):
+    """Nettoie une colonne numérique en gérant les formats particuliers"""
+    def clean_value(x):
+        if pd.isna(x):
+            return np.nan
+        if isinstance(x, (int, float)):
+            return float(x)
+        # Convertir en string et nettoyer
+        x = str(x).replace(' ', '')
+        # Gérer le format avec deux points (1.082.4 -> 1082.4)
+        if x.count('.') > 1:
+            x = x.replace('.', '', x.count('.')-1)
+        try:
+            return float(x)
+        except:
+            return np.nan
+    
+    df[column] = df[column].apply(clean_value)
+    return df
+
+# Fonction pour charger les données depuis S3
+@st.cache_data
+def load_data_from_s3(file_path):
+    """Charge un fichier depuis S3 et retourne un DataFrame"""
+    s3 = S3Manager()
+    temp_file = tempfile.NamedTemporaryFile(suffix=os.path.basename(file_path))
+    try:
+        s3.download_file(file_path, temp_file.name)
+        df = pd.read_excel(temp_file.name)
+        temp_file.close()
+        
+        # Nettoyer les colonnes numériques si c'est le fichier food_processed
+        if "food_processed.xlsx" in file_path:
+            numeric_cols = ['Valeur calorique', 'Lipides', 'Glucides', 'Protein', 'Fibre alimentaire', 'Sucre', 'Sodium']
+            for col in numeric_cols:
+                if col in df.columns:
+                    df = clean_numeric_column(df, col)
+        
+        return df
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du fichier {file_path}: {str(e)}")
+        return None
+
 def plot_feature_distributions(food_features):
     """Crée des visualisations des distributions des caractéristiques"""
-    numeric_cols = ['calories', 'lipides', 'glucides', 'proteines', 'fibres', 'sucres', 'sodium']
+    numeric_cols = ['Valeur calorique', 'Lipides', 'Glucides', 'Protein', 'Fibre alimentaire', 'Sucre', 'Sodium']
     
     # Créer une figure avec subplots
     fig = go.Figure()
@@ -62,7 +105,7 @@ def plot_feature_distributions(food_features):
         # Ajouter un violin plot pour chaque caractéristique
         fig.add_trace(go.Violin(
             y=food_features[col],
-            name=col.capitalize(),
+            name=col,
             box_visible=True,
             meanline_visible=True
         ))
@@ -92,7 +135,7 @@ def plot_food_type_distribution(food_features):
 def plot_feature_correlations(food_features):
     """Crée une heatmap des corrélations entre caractéristiques"""
     # Sélectionner uniquement les nutriments principaux
-    main_nutrients = ['calories', 'proteines', 'glucides', 'lipides']
+    main_nutrients = ['Valeur calorique', 'Protein', 'Glucides', 'Lipides']
     corr_matrix = food_features[main_nutrients].corr()
     
     fig = go.Figure(data=go.Heatmap(
@@ -112,16 +155,23 @@ def plot_feature_correlations(food_features):
 
 def main():
     st.title("📊 Recommandeur Basé sur le Contenu")
+
+    # Charger les données depuis S3
+    food_features = load_data_from_s3("reference_data/food/food_processed.xlsx")
+    user_preferences = load_data_from_s3("transform/folder_4_windows_function/type_food/user_food_proportion_pandas.xlsx")
     
-    # Charger les données et statistiques
-    data_loader = ContentBasedDataLoader()
-    food_features, user_preferences = data_loader.load_training_data()
+    if food_features is None:
+        st.error("Impossible de charger les données des aliments depuis S3")
+        
+    if user_preferences is None:
+        st.error("Impossible de charger les préférences utilisateur depuis S3")
+    
     model_stats = load_model_stats()
     example_recommendations = load_example_recommendations()
     
-    # Vérifier si le modèle a été entraîné
+    # Vérifier si les données sont disponibles
     if model_stats is None:
-        st.warning("⚠️ Le modèle n'a pas encore été entraîné. Veuillez lancer l'entraînement avec la commande : `python -m AI.recommender.content_based.training.train_model`")
+        st.warning("⚠️ Les statistiques du modèle ne sont pas disponibles.")
     
     # Section d'introduction
     st.markdown("""

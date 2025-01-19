@@ -1,0 +1,103 @@
+{
+    "dataframes": {
+        "food_features": {
+            "source": "AI.recommender.content_based.data_loader.ContentBasedDataLoader",
+            "description": "DataFrame contenant les caractéristiques des aliments",
+            "columns": {
+                "calories": {
+                    "type": "numeric",
+                    "usage": "Distribution plot, Feature correlation",
+                    "original_name": "Valeur calorique"
+                },
+                "lipides": {
+                    "type": "numeric",
+                    "usage": "Distribution plot",
+                    "original_name": "Lipides"
+                },
+                "glucides": {
+                    "type": "numeric",
+                    "usage": "Distribution plot, Feature correlation",
+                    "original_name": "Glucides"
+                },
+                "proteines": {
+                    "type": "numeric",
+                    "usage": "Distribution plot, Feature correlation",
+                    "original_name": "Protein"
+                },
+                "fibres": {
+                    "type": "numeric",
+                    "usage": "Distribution plot",
+                    "original_name": "Fibre alimentaire"
+                },
+                "sucres": {
+                    "type": "numeric",
+                    "usage": "Distribution plot",
+                    "original_name": "Sucre"
+                },
+                "sodium": {
+                    "type": "numeric",
+                    "usage": "Distribution plot",
+                    "original_name": "Sodium"
+                },
+                "Type": {
+                    "type": "categorical",
+                    "usage": "Pie chart distribution"
+                }
+            }
+        },
+        "user_preferences": {
+            "source": "AI.recommender.content_based.data_loader.ContentBasedDataLoader",
+            "description": "DataFrame contenant les préférences des utilisateurs"
+        },
+        "model_stats": {
+            "source": "S3/AI/recommender/content_based/results/stats.json",
+            "description": "Statistiques du modèle chargées depuis S3",
+            "metrics": [
+                "mae",
+                "rmse",
+                "coverage",
+                "total_users"
+            ]
+        },
+        "example_recommendations": {
+            "source": "S3/AI/recommender/content_based/results/recommendations.json",
+            "description": "Exemples de recommandations chargés depuis S3"
+        }
+    },
+    "modules_externes": {
+        "AI": {
+            "path": "AI.recommender.content_based",
+            "classes": [
+                "ContentBasedRecommender",
+                "ContentBasedDataLoader"
+            ],
+            "description": "Module AI non présent dans le dossier principal, doit être installé séparément"
+        },
+        "S3": {
+            "path": "AWS.s3.connect_s3",
+            "classes": [
+                "S3Manager"
+            ],
+            "description": "Module de connexion à AWS S3 pour charger les données et statistiques"
+        }
+    },
+    "inconsistencies": {
+        "column_names": {
+            "description": "Différences entre les noms de colonnes dans page 7 et dataframes_structures.json",
+            "mappings": {
+                "calories": "Valeur calorique",
+                "proteines": "Protein",
+                "fibres": "Fibre alimentaire",
+                "sucres": "Sucre"
+            }
+        },
+        "missing_documentation": {
+            "description": "Éléments manquants dans dataframes_structures.json",
+            "items": [
+                "stats.json dans S3",
+                "recommendations.json dans S3",
+                "Structure du DataFrame transformé par ContentBasedDataLoader"
+            ]
+        }
+    }
+}

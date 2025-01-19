@@ -12,7 +12,7 @@ import tempfile
 
 # Ajouter le chemin racine au PYTHONPATH
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from aws_s3.connect_s3 import S3Manager
+from AWS.s3.connect_s3 import S3Manager
 
 st.set_page_config(page_title="Détection d'Anomalies Alimentaires", page_icon="🔍", layout="wide")
 

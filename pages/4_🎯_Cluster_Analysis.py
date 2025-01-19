@@ -8,7 +8,7 @@ import os
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from aws_s3.connect_s3 import S3Manager
+from AWS.s3.connect_s3 import S3Manager
 
 st.set_page_config(page_title="Cluster Analysis", page_icon="🎯", layout="wide")
 
