@@ -28,6 +28,12 @@ class S3Manager:
         logger.debug(f"AWS_REGION is {'set' if self.region else 'not set'}")
         logger.debug(f"S3_BUCKET_NAME is {'set' if self.bucket_name else 'not set'}")
 
+        # Log the actual values of AWS credentials for verification
+        logger.debug(f"AWS_ACCESS_KEY_ID: {self.aws_access_key_id}")
+        logger.debug(f"AWS_SECRET_ACCESS_KEY: {self.aws_secret_access_key}")
+        logger.debug(f"AWS_REGION: {self.region}")
+        logger.debug(f"S3_BUCKET_NAME: {self.bucket_name}")
+
         # Verify that all required credentials are provided
         missing_vars = [
             var for var, value in {
