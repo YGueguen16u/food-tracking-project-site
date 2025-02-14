@@ -22,6 +22,12 @@ class S3Manager:
         self.region = os.getenv('AWS_REGION')
         self.bucket_name = os.getenv('S3_BUCKET_NAME')
 
+        # Log the presence of AWS credentials
+        logger.debug(f"AWS_ACCESS_KEY_ID is {'set' if self.aws_access_key_id else 'not set'}")
+        logger.debug(f"AWS_SECRET_ACCESS_KEY is {'set' if self.aws_secret_access_key else 'not set'}")
+        logger.debug(f"AWS_REGION is {'set' if self.region else 'not set'}")
+        logger.debug(f"S3_BUCKET_NAME is {'set' if self.bucket_name else 'not set'}")
+
         # Verify that all required credentials are provided
         missing_vars = [
             var for var, value in {
